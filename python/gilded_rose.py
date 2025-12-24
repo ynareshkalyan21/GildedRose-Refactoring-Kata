@@ -78,6 +78,22 @@ class SulfurasUpdater(ItemUpdater):
         pass
 
 
+class ConjuredItemUpdater(ItemUpdater):
+    """Updates 'Conjured' items:
+    - Quality decreases twice as fast as normal items:
+      * -2 each day before sell_in date.
+      * -4 each day after sell_in date has passed.
+    - Quality never goes below 0.
+    """
+    def update(self, item):
+        item.sell_in -= 1
+        QualityHelper.decrease_quality(item)
+        QualityHelper.decrease_quality(item)
+        if item.sell_in < 0:
+            QualityHelper.decrease_quality(item)
+            QualityHelper.decrease_quality(item)
+
+
 class ItemUpdaterFactory:
     """Factory that returns the correct ItemUpdater based on the item name."""
 
@@ -89,6 +105,8 @@ class ItemUpdaterFactory:
             return BackstagePassUpdater()
         elif item.name == "Sulfuras, Hand of Ragnaros":
             return SulfurasUpdater()
+        elif item.name.lower().startswith("conjured"):
+            return ConjuredItemUpdater()
         else:
             return NormalItemUpdater()
 
